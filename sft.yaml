@@ -1,0 +1,67 @@
+base_model: kakaocorp/kanana-1.5-2.1b-instruct-2505
+
+load_in_8bit: false
+load_in_4bit: false
+
+datasets:
+  - path: train.jsonl
+    type: chat_template
+
+dataset_prepared_path: preprocess
+val_set_size: 0.01
+output_dir: ./outputs
+dataloader_num_workers: 56
+
+adapter: 
+lora_model_dir:
+
+sequence_len: 8192
+sample_packing: false
+eval_sample_packing: false
+pad_to_sequence_len: false
+
+plugins:
+  - axolotl.integrations.liger.LigerPlugin
+liger_rope: true
+liger_rms_norm: true
+liger_swiglu: true
+liger_fused_linear_cross_entropy: true
+
+wandb_project: aldin-sft
+wandb_entity:
+wandb_watch:
+wandb_name: aldin-sft-001
+wandb_log_model:
+
+hub_model_id: yeongseok11/kanana-sft
+
+gradient_accumulation_steps: 8
+micro_batch_size: 8 # 8*8 *2 = 128
+num_epochs: 3
+optimizer: adamw_torch_fused
+# optimizer: adamw_torch_8bit
+lr_scheduler: cosine
+learning_rate: 2e-5
+
+bf16: auto
+tf32: false
+
+gradient_checkpointing: false
+resume_from_checkpoint:
+logging_steps: 1
+flash_attention: true
+flash_attn_fuse_mlp: true
+
+warmup_ratio: 0.05
+weight_decay: 0.01
+evals_per_epoch: 0
+saves_per_epoch: 1
+
+fsdp:
+  - full_shard
+  - auto_wrap
+fsdp_config:
+  fsdp_backward_prefetch: BACKWARD_PRE
+  fsdp_state_dict_type: SHARDED_STATE_DICT
+  fsdp_transformer_layer_cls_to_wrap: LlamaDecoderLayer
+  fsdp_activation_checkpointing: true
